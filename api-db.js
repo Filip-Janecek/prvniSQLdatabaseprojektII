@@ -1,4 +1,5 @@
 const getDbConnection = require("./db-mysql").getConnection;
+let t;
 
 exports.apiDb = function (req, res, obj) {
     let connection = getDbConnection();
@@ -46,6 +47,49 @@ exports.apiDb = function (req, res, obj) {
                     console.error(JSON.stringify({status: "Error", error: err}));
                     obj.error = JSON.stringify(err);
                 } else {
+                }
+                res.end(JSON.stringify(obj));
+            }
+        );
+    } else if (req.pathname.endsWith("/kopirujStudenta")) {
+        let j = req.parameters.jmeno;
+        let p = req.parameters.prijmeni;
+        t = req.parameters.trida;
+        let c = req.parameters.cislo;
+//        let qry = "DELETE FROM spaserverexample_studenti WHERE id="+req.parameters.id;
+        let qry = "INSERT INTO `spaserverexample_studenti` (`tridy_id`, `jmeno`, `prijmeni`, `cislo_podle_tridnice`, `stav`) VALUES ('"+t+"', '"+j+"', '"+p+"', '"+c+"', '1')";
+        connection.query(qry,
+            function(err, rows){
+                if (err) {
+                    console.error(JSON.stringify({status: "Error", error: err}));
+                    obj.error = JSON.stringify(err);
+                } else {
+                }
+                res.end(JSON.stringify(obj));
+            }
+        );
+    } else if (req.pathname.endsWith("/zkopirujStudenta")) {
+//        let qry = "DELETE FROM spaserverexample_studenti WHERE id="+req.parameters.id;
+        let qry = "INSERT INTO `spaserverexample_studenti` (`id`, `tridy_id`, `jmeno`, `prijmeni`, `cislo_podle_tridnice`, `stav`) VALUES (NULL, '7', 'Jiří', 'Hajáček', '20', '1')";
+        connection.query(qry,
+            function(err, rows){
+                if (err) {
+                    console.error(JSON.stringify({status: "Error", error: err}));
+                    obj.error = JSON.stringify(err);
+                } else {
+                }
+                res.end(JSON.stringify(obj));
+            }
+        );
+    } else if (req.pathname.endsWith("/cislotridnice")) {
+        let qry = "SELECT MAX(cislo_podle_tridnice) FROM `spaserverexample_studenti` WHERE tridy_id="+t;
+        connection.query(qry,
+            function(err, rows){
+                if (err) {
+                    console.error(JSON.stringify({status: "Error", error: err}));
+                    obj.error = JSON.stringify(err);
+                } else {
+                    YYYYY
                 }
                 res.end(JSON.stringify(obj));
             }

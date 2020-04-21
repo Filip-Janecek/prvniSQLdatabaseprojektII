@@ -6,7 +6,7 @@
     <script>
         const HOST = window.location.protocol + "//" + window.location.hostname + ((window.location.port) ? ":" + window.location.port : "");
 
-        function ukazChybu(e) {
+      /*  function ukazChybu(e) {
             console.error('Error:', e.toString());
             let s;
             if (typeof e == "object") {
@@ -15,7 +15,7 @@
                 s = e;
             }
             alert(s);
-        }
+        }*/
 
         function ukazDen() {
             let url = `${HOST}/denvtydnu`;
@@ -42,6 +42,8 @@
             });
         }
 
+
+
         function spustPoNacteni() {
             ukazDen();
             setInterval(ukazCas, 1000);
@@ -51,6 +53,21 @@
             dt.setDate(31); //Silvestr
             document.getElementById("datum2").valueAsDate = dt;
             ukazDen2();
+
+            let urlTridy = `${HOST}/db/tridy`;
+            fetch(urlTridy).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    let y = `Třídy: <select id="tridy-id" onchange="dbStudenti()">`;
+                    for (let t of obj.tridy) {
+                        y += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
+                    }
+                    y += `</select>`;
+                    document.getElementById("tridy_input").innerHTML = y;
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
         }
 
         function ukazDen2() {
@@ -85,15 +102,15 @@
                         let s = `<a href="./db-setup/index.html" target="_blank">Příprava databáze</a>`;
                         document.getElementById("div_tridy").innerHTML = s;
                     } else {
-                        let s = `Třídy: <select id="tridy" onchange="dbStudenti()">`;
-                        s += `<option value="-">- nic -</option>`;
-                        s += `<option value="">Vše</option>`;
+                        let y = `Třídy: <select id="tridy" onchange="dbStudenti()">`;
                         for (let t of obj.tridy) {
-                            s += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
+                             y += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
                         }
-                        s += `</select>`;
-                        s += `&nbsp;&nbsp;&nbsp;<input type="text" id="vyhledat"><input type="button" value="Vyhledat" onclick="dbStudenti()">`;
-                        document.getElementById("div_tridy").innerHTML = s;
+                        y += `<option value="-">- nic -</option>`;
+                        y += `<option value="">Vše</option>`;
+                        y += `</select>`;
+                        y += `&nbsp;&nbsp;&nbsp;<input type="text" id="vyhledat"><input type="button" value="Vyhledat" onclick="dbStudenti()">`;
+                        document.getElementById("div_tridy").innerHTML = y;
                     }
                 }).catch((error) => {
                     ukazChybu(error);
@@ -115,6 +132,86 @@
                 });
             });
         }
+
+        function kopirujStudenta(id) {
+            let jmeno = document.getElementById("krestni").value;
+            let prijmeni = document.getElementById("prijmeni").value;
+            let t = document.getElementById("tridy-id").value;
+
+
+
+            //let test = document.getElementById("tridy_formular").value;
+            document.getElementById("test").innerHTML = t;
+           let cisloTridnice = document.getElementById("cisloTridnice").value;
+            let url = `${HOST}/db/kopirujStudenta?jmeno=${jmeno}&prijmeni=${prijmeni}&trida=${t}&cislo=${cisloTridnice} `;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    if (obj.error) {
+                        document.getElementById("div_studenti").innerHTML = obj.error;
+                    } else {
+                        dbStudenti();
+                    }
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+
+        }
+
+        function cisloTridnice() {
+            let url = `${HOST}/db/cislotridnice`;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    if (obj.error) {
+                        alert(obj.error);
+                        let s = `<a href="./db-setup/index.html" target="_blank">Příprava databáze</a>`;
+                        document.getElementById("div_tridy").innerHTML = s;
+                    } else {
+                        /*let y = `Třídy: <select id="tridy" onchange="dbStudenti()">`;
+                        for (let t of obj.tridy) {
+                            y += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
+                        }
+                        y += `<option value="-">- nic -</option>`;
+                        y += `<option value="">Vše</option>`;
+                        y += `</select>`;
+                        y += `&nbsp;&nbsp;&nbsp;<input type="text" id="vyhledat"><input type="button" value="Vyhledat" onclick="dbStudenti()">`;
+                        document.getElementById("div_tridy").innerHTML = y;*/
+                        let y = XXXXX;
+                    }
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+        }
+
+       /* function zkopirujStudenta() {
+            let krestni = document.getElementById("krestni").value;
+            let prijmeni = document.getElementById("prijmeni").value;
+            let id = document.getElementById("id").value;
+            let tridyid = document.getElementById("tridy-id").value;
+            document.getElementById("heh").value = prijmeni;
+            let params = {};
+            let url = ``${HOST}/db/zkopirujStudenta?id=${id}``;
+            params.jmeno = krestni;
+            params.prijmeni = prijmeni;
+            let opt = {};
+            opt.method = "POST";
+            opt.body = JSON.stringify(params);
+            fetch(url, opt).then(function(response) {
+                response.text().then(function(text) {
+                    let obj = JSON.parse(text);
+                    if(obj.error){
+                        alert(obj.error);
+                    }else{
+                        dbStudenti();
+                    }
+                });
+            });
+        }*/
+
+
         function dbStudenti() {
             let url = `${HOST}/db/studenti?`;
             let t = document.getElementById("tridy").value;
@@ -151,7 +248,7 @@
 </head>
 <body onload="spustPoNacteni()">
 
-<h1>Příklad použití modulu <a href="https://github.com/liborsvejda/spaserver" target="_blank">spaserver</a></h1>
+<h1>Příklad použití modulu <a href="https://github.com/liborsvejda/spaserver" target="_blank">SPAserver</a></h1>
 
 Dnes je <span id="den">...</span> <span id="datum">...</span>. Čas na serveru je <span id="cas">...</span>.
 <br><br>
@@ -165,6 +262,17 @@ dne <input type="date" id="datum2" onchange="ukazDen2()"> byl(a/o)/bude <span id
 
 <div id="div_tridy"><input type="button" value="Načti třídy" onclick="dbTridy()"></div>
 <div id="div_studenti"></div>
+<h1>Student input</h1>
+    <input type="button" value="zkopírovat studenta" onclick="zkopirujStudenta()">
+    <input type="text" value="Křestní jméno" id="krestni">
+    <input type="text" value="Příjmení" id="prijmeni">
+    <div id="tridy_input"></div>
+    tridy-id<!-- <input type="number" id="tridy-id" value="5" onchange="dbStudenti()">>-->
+<select id="tridy" onchange="dbStudenti()">
 
+</select>
+    číslo podle třídnice<input type="number" value="21" id="cisloTridnice">
+<input type="button" value="vložit studenta" onclick="kopirujStudenta()">
+<div id="test">...</div>
 </body>
 </html>
