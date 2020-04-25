@@ -133,7 +133,7 @@
             });
         }
 
-        function kopirujStudenta(id) {
+        function kopirujStudenta() {
             let jmeno = document.getElementById("krestni").value;
             let prijmeni = document.getElementById("prijmeni").value;
             let t = document.getElementById("tridy-id").value;
@@ -178,7 +178,8 @@
                         y += `</select>`;
                         y += `&nbsp;&nbsp;&nbsp;<input type="text" id="vyhledat"><input type="button" value="Vyhledat" onclick="dbStudenti()">`;
                         document.getElementById("div_tridy").innerHTML = y;*/
-                        let y = XXXXX;
+                        let cislo = obj.maxcislo;
+                        document.getElementById("testII").innerHTML = cislo;
                     }
                 }).catch((error) => {
                     ukazChybu(error);
@@ -274,5 +275,7 @@ dne <input type="date" id="datum2" onchange="ukazDen2()"> byl(a/o)/bude <span id
     číslo podle třídnice<input type="number" value="21" id="cisloTridnice">
 <input type="button" value="vložit studenta" onclick="kopirujStudenta()">
 <div id="test">...</div>
+<div id="testII">....</div>
+<input type="button" onclick="cisloTridnice()">
 </body>
 </html>
