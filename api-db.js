@@ -78,7 +78,7 @@ exports.apiDb = function (req, res, obj) {
                     obj.error = JSON.stringify(err);
                 } else {
                     /*sqlValues = rows[0].name;
-                    obj.maxcislo = qry.;
+                    obj.maxcislo = sqlValues;
                     test = "dvacet";*/
                     obj.maxcislo = 9;
                 }
