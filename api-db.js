@@ -1,5 +1,5 @@
 const getDbConnection = require("./db-mysql").getConnection;
-let t;
+//let t;
 let test;
 
 exports.apiDb = function (req, res, obj) {
@@ -55,8 +55,8 @@ exports.apiDb = function (req, res, obj) {
     } else if (req.pathname.endsWith("/kopirujStudenta")) {
         let j = req.parameters.jmeno;
         let p = req.parameters.prijmeni;
-        t = req.parameters.trida;
         let c = req.parameters.cislo;
+        let t = req.parameters.trida;
 //        let qry = "DELETE FROM spaserverexample_studenti WHERE id="+req.parameters.id;
         let qry = "INSERT INTO `spaserverexample_studenti` (`tridy_id`, `jmeno`, `prijmeni`, `cislo_podle_tridnice`, `stav`) VALUES ('"+t+"', '"+j+"', '"+p+"', '"+c+"', '1')";
         connection.query(qry,
@@ -70,7 +70,8 @@ exports.apiDb = function (req, res, obj) {
             }
         );
     } else if (req.pathname.endsWith("/cislotridnice")) {
-        let qry = "SELECT MAX(cislo_podle_tridnice) FROM `spaserverexample_studenti` WHERE tridy_id="+t;
+        let t = req.parameters.trida;
+        let qry = "SELECT MAX(cislo_podle_tridnice) AS max_cislo_v_tridnici FROM `spaserverexample_studenti` WHERE tridy_id="+t;
         connection.query(qry,
             function(err, rows){
                 if (err) {
@@ -80,7 +81,8 @@ exports.apiDb = function (req, res, obj) {
                     /*sqlValues = rows[0].name;
                     obj.maxcislo = sqlValues;
                     test = "dvacet";*/
-                    obj.maxcislo = 9;
+                    console.log(rows[0]);
+                    obj.maxcislo = rows[0].max_cislo_v_tridnici;
                 }
                 res.end(JSON.stringify(obj));
             }
