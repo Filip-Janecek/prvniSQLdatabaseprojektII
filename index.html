@@ -3,9 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Příklad použití modulu spaserver</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        table, th, td {
+            border: 1px solid rgba(0, 0, 0, 0.58);
+        }
+        body {
+            margin: 5em;
+        }
+    </style>
     <script>
         const HOST = window.location.protocol + "//" + window.location.hostname + ((window.location.port) ? ":" + window.location.port : "");
-
         /*  function ukazChybu(e) {
               console.error('Error:', e.toString());
               let s;
@@ -16,7 +27,9 @@
               }
               alert(s);
           }*/
-
+        let trida;
+        let tridy;
+        let t;
         function ukazDen() {
             let url = `${HOST}/denvtydnu`;
             fetch(url).then(function (response) {
@@ -42,11 +55,45 @@
             });
         }
 
+        function dbTridy() {
+            let url = `${HOST}/db/tridy`;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    if (obj.error) {
+                        alert(obj.error);
+                        let s = `<a href="./db-setup/index.html" target="_blank">Příprava databáze</a>`;
+                        document.getElementById("div_tridy").innerHTML = s;
+                    } else {
+                        let y = `Třídy: <select id="tridy" onchange="dbStudenti()">`;
+                        for (let t of obj.tridy) {
+                            trida = t.id;
+                            y += `<option value="${trida}">${t.rocnik}.${t.oznaceni}</option>`;
+                        }
+                        y += `<option value="-">- nic -</option>`;
+                        y += `<option value="">Vše</option>`;
+                        y += `</select>`;
+                        y += `&nbsp;&nbsp;&nbsp;<input type="text" id="vyhledat"><input type="button" value="Vyhledat" onclick="dbStudenti()">`;
+                        document.getElementById("div_tridy").innerHTML = y;
+                        tridy = document.getElementById("tridy");
+                        tridy.selectedIndex = trida - 1;
+                        document.getElementById("testicek").innerHTML = trida;
+                    }
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+        }
+
 
 
         function spustPoNacteni() {
+            dbTridy();
             ukazDen();
             setInterval(ukazCas, 1000);
+            document.getElementById("div_tabulka").style.display = "block";
+            document.getElementById("editace").style.display = "none";
+            document.getElementById("vlozeni").style.display = "none";
 
             let dt = new Date();
             dt.setMonth(11); //prosinec
@@ -54,16 +101,21 @@
             document.getElementById("datum2").valueAsDate = dt;
             ukazDen2();
 
-            let urlTridy = `${HOST}/db/tridy`;
+          let urlTridy = `${HOST}/db/tridy`;
             fetch(urlTridy).then(function (response) {
                 response.text().then(function (text) {
                     let obj = JSON.parse(text);
+
                     let y = `Třídy: <select id="tridy-id" onchange="dbStudenti(); cisloTridnice()">`;
                     for (let t of obj.tridy) {
-                        y += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
+                        trida = t.id;
+                        document.getElementById("testicek").innerHTML = trida;
+                        y += `<option value="${trida}">${t.rocnik}.${t.oznaceni}</option>`;
                     }
+                    document.getElementById("testicek").innerHTML = trida;
                     y += `</select>`;
                     document.getElementById("tridy_input").innerHTML = y;
+
                 }).catch((error) => {
                     ukazChybu(error);
                 });
@@ -92,31 +144,7 @@
             });
         }
 
-        function dbTridy() {
-            let url = `${HOST}/db/tridy`;
-            fetch(url).then(function (response) {
-                response.text().then(function (text) {
-                    let obj = JSON.parse(text);
-                    if (obj.error) {
-                        alert(obj.error);
-                        let s = `<a href="./db-setup/index.html" target="_blank">Příprava databáze</a>`;
-                        document.getElementById("div_tridy").innerHTML = s;
-                    } else {
-                        let y = `Třídy: <select id="tridy" onchange="dbStudenti()">`;
-                        for (let t of obj.tridy) {
-                            y += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
-                        }
-                        y += `<option value="-">- nic -</option>`;
-                        y += `<option value="">Vše</option>`;
-                        y += `</select>`;
-                        y += `&nbsp;&nbsp;&nbsp;<input type="text" id="vyhledat"><input type="button" value="Vyhledat" onclick="dbStudenti()">`;
-                        document.getElementById("div_tridy").innerHTML = y;
-                    }
-                }).catch((error) => {
-                    ukazChybu(error);
-                });
-            });
-        }
+
         function smazStudenta(id) {
             let url = `${HOST}/db/smazStudenta?id=${id}`;
             fetch(url).then(function (response) {
@@ -151,11 +179,14 @@
                         document.getElementById("div_studenti").innerHTML = obj.error;
                     } else {
                         dbStudenti();
+                        stornoStudenta();
+                        dbTridy();
                     }
                 }).catch((error) => {
                     ukazChybu(error);
                 });
             });
+
 
         }
 
@@ -182,6 +213,8 @@
                         document.getElementById("div_tridy").innerHTML = y;*/
                         let cislo = obj.maxcislo + 1;
                         document.getElementById("cisloTridnice").value = cislo;
+                        document.getElementById("cisloTridniceEditace").value = cislo;
+
                     }
                 }).catch((error) => {
                     ukazChybu(error);
@@ -189,6 +222,98 @@
             });
         }
 
+        function editujStudenta(id) {
+            document.getElementById("div_tabulka").style.display = "none";
+            document.getElementById("editace").style.display = "block";
+            let url = `${HOST}/db/detailStudenta?id=${id}`;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    if (obj.error) {
+                        document.getElementById("div_studenti").innerHTML = obj.error;
+                    } else {
+                        document.getElementById("edit-krestni").value = obj.student.jmeno;
+                        document.getElementById("edit-prijmeni").value = obj.student.prijmeni;
+                        document.getElementById("cisloTridniceEditace").value = obj.student.cislo_podle_tridnice;
+                        document.getElementById("edit-trida").value = obj.student.tridy_id;
+
+                    }
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+            }
+            function stornoStudenta() {
+             document.getElementById("div_tabulka").style.display = "block";
+             document.getElementById("editace").style.display = "none";
+             document.getElementById("vlozeni").style.display = "none";
+             dbTridy();
+            }
+        function pripravaKVlozeni() {
+            ukazVlozeni();
+            stornoStudenta();
+            ukazVlozeni();
+        }
+            function ukazVlozeni(){
+                document.getElementById("div_tabulka").style.display = "none";
+                document.getElementById("editace").style.display = "none";
+                document.getElementById("vlozeni").style.display = "block";
+                document.getElementById("krestni").value = " ";
+                document.getElementById("prijmeni").value = " ";
+                cisloTridnice();
+                document.getElementById("testicek").innerHTML = trida;
+                document.getElementById("tridy-id").selectedIndex = t - 1;
+                document.getElementById("testicek").innerHTML = t;
+               /* let urlTridy = `$0{HOST}/db/tridy`;
+                fetch(urlTridy).then(function (response) {
+                    response.text().then(function (text) {
+                        let obj = JSON.parse(text);
+                        let y = `Třídy: <select id="tridy-id" onchange="dbStudenti(); cisloTridnice()">`;
+                        for (let t of obj.tridy) {
+                            y += `<option value="${t.id}">${t.rocnik}.${t.oznaceni}</option>`;
+                        }
+
+                        y += `</select>`;
+                        document.getElementById("tridy_input").innerHTML = y;
+                       //tridy = document.getElementById("tridy-id");
+                      // tridy.selectedIndex = trida;
+                    }).catch((error) => {
+                        ukazChybu(error);
+                    });
+                });*/
+
+
+            }
+
+
+            function ulozStudenta() {
+                document.getElementById("div_tabulka").style.display = "block";
+                document.getElementById("editace").style.display = "none";
+                let krestni = document.getElementById("edit-krestni").value;
+                let prijmeni = document.getElementById("edit-prijmeni").value;
+                let trida = document.getElementById("edit-trida").value;
+                let cislotridnice = document.getElementById("cisloTridniceEditace").value;
+                let url = `${HOST}/db/ulozStudenta?jmeno=${krestni}&prijmeni=${prijmeni}&trida=${trida}&cislo=${cislotridnice} `;
+                /*document.getElementById("edit-krestni").value = " ";
+                document.getElementById("edit-prijmeni").value = " ";
+                document.getElementById("edit-trida").value = " ";*/
+                document.getElementById("cisloTridniceEditace").value = " ";
+                fetch(url).then(function (response) {
+                    response.text().then(function (text) {
+                        let obj = JSON.parse(text);
+                        if (obj.error) {
+                            document.getElementById("div_studenti").innerHTML = obj.error;
+                        } else {
+                            dbStudenti();
+                        }
+                    }).catch((error) => {
+                        ukazChybu(error);
+                    });
+                });
+
+
+
+            }
         /* function zkopirujStudenta() {
              let krestni = document.getElementById("krestni").value;
              let prijmeni = document.getElementById("prijmeni").value;
@@ -217,7 +342,8 @@
 
         function dbStudenti() {
             let url = `${HOST}/db/studenti?`;
-            let t = document.getElementById("tridy").value;
+            t = document.getElementById("tridy").value;
+            document.getElementById("testicek").innerHTML = t;
             if (t == "-") { //nic
                 document.getElementById("div_studenti").innerHTML = "";
                 return;
@@ -235,10 +361,31 @@
                     if (obj.error) {
                         document.getElementById("div_studenti").innerHTML = obj.error;
                     } else {
-                        let s = ``;
+                        let s = `<table class="table table-hover">`;
+                        s += ' <tr>\n' +
+                            '    <th></th>\n' +
+                            '    <th>Číslo v třídnici</th>\n' +
+                            '    <th>Příjmení</th>\n' +
+                            '    <th>Jméno</th>\n' +
+                            '    <th>Třída</th>\n' +
+                            '  </tr>'
+                        s += '<tr>';
+
                         for (let st of obj.studenti) {
-                            s += `[<a href="JavaScript:smazStudenta(${st.id})">X</a>] ${st.prijmeni} ${st.jmeno} (${st.rocnik}.${st.oznaceni_tridy}) ${st.cislo_podle_tridnice}<br>`;
+                            s += '<tr>'
+                            s += `<td><a href="JavaScript:smazStudenta(${st.id})" class="fa fa-minus-square"></a><a href="JavaScript:editujStudenta(${st.id})" class="fa fa-plus-square"></a></td>`;
+                            s += `<td>${st.cislo_podle_tridnice}</td>`;
+                            s += `<td>${st.prijmeni}</td>`;
+                            s += `<td>${st.jmeno}</td>`
+                            s += `<td>${st.rocnik}${st.oznaceni_tridy}</td>`;
+
+
+
+
+                            s += '</tr>'
+
                         }
+                        s += '</table>';
                         document.getElementById("div_studenti").innerHTML = s;
                     }
                 }).catch((error) => {
@@ -246,10 +393,14 @@
                 });
             });
         }
+        function zusammen(){
+            dbTridy();
+            spustPoNacteni();
 
+        }
     </script>
 </head>
-<body onload="spustPoNacteni()">
+<body onload="zusammen()">
 
 <h1>Příklad použití modulu <a href="https://github.com/liborsvejda/spaserver" target="_blank">SPAserver</a></h1>
 
@@ -259,25 +410,39 @@ Použiju metodu <input type="radio" name="metoda" id="GET" checked="checked">GET
                                                                                             id="POST">POST a zjistím, že
 dne <input type="date" id="datum2" onchange="ukazDen2()"> byl(a/o)/bude <span id="den2">...</span>.
 <br><br>
-<img src="res/nodejs.png" title="obrázek">
+
 
 <h2>Příklad použití MySQL - školní třídy a studenti</h2>
 
-<div id="div_tridy"><input type="button" value="Načti třídy" onclick="dbTridy()"></div>
-<div id="div_studenti"></div>
-<h1>Student input</h1>
-<input type="button" value="zkopírovat studenta" onclick="zkopirujStudenta()">
-<input type="text" value="Křestní jméno" id="krestni">
-<input type="text" value="Příjmení" id="prijmeni">
-<div id="tridy_input"></div>
-tridy-id<!-- <input type="number" id="tridy-id" value="5" onchange="dbStudenti()">>-->
-<select id="tridy" onchange="dbStudenti()">
+<div id="vlozeni">
+    <h1>Vložení studenta</h1>
+    <input type="text" value="Křestní jméno" id="krestni">
+    <input type="text" value="Příjmení" id="prijmeni">
+    <div id="tridy_input"></div>
+    číslo podle třídnice<input type="number" id="cisloTridnice">
+    <input type="button" value="vložit studenta" onclick="kopirujStudenta()">
+    <input type="button" onclick="stornoStudenta()" value="storno studenta">
+</div>
 
-</select>
-číslo podle třídnice<input type="number" value="21" id="cisloTridnice">
-<input type="button" value="vložit studenta" onclick="kopirujStudenta()">
-<div id="test">...</div>
-<div id="testII">....</div>
-<input type="button" value="změň číslo v třídnici" onclick="cisloTridnice()">
+<div id="editace">
+    <h1>Editace studenta</h1>
+    <input type="text"  id="edit-krestni" value="Křestní jméno">
+    <input type="text" id="edit-prijmeni" value="Příjmení">
+    třída:<input type="number" id="edit-trida">
+    číslo třídnice:<input type="number" id="cisloTridniceEditace">
+    <input type="submit" onclick="ulozStudenta()" value="Uložit"><br><br>
+    <input type="button" onclick="stornoStudenta()" value="storno studenta">
+</div>
+<br>
+<br>
+<br>
+<div id="test"></div>
+<div id="testicek">...</div>
+<button onclick="pripravaKVlozeni()">Vložit studenta <i class="fa fa-user-plus"></i></button>
+<div id="div_tabulka">
+    <div id="div_tridy"><input type="button" value="Načti třídy" onclick="dbTridy()"></div>
+    <div id="div_studenti"></div><br><br>
+</div>
+
 </body>
 </html>
